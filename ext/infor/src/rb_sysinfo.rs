@@ -6,7 +6,7 @@ pub struct RbSysinfo {
     sys: System,
 }
 
-#[magnus::wrap(class = "Sysinfo")]
+#[magnus::wrap(class = "Infor::Sysinfo")]
 pub struct MutRbSysinfo(RefCell<RbSysinfo>);
 
 impl MutRbSysinfo {
