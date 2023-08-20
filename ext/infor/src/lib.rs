@@ -13,6 +13,24 @@ fn init() -> Result<(), Error> {
     sysinfo_class.define_method("refresh_memory", method!(MutRbSysinfo::refresh_memory, 0))?;
     sysinfo_class.define_method("refresh_cpu", method!(MutRbSysinfo::refresh_cpu, 0))?;
     sysinfo_class.define_method("total_memory", method!(MutRbSysinfo::total_memory, 0))?;
+    sysinfo_class.define_method("free_memory", method!(MutRbSysinfo::free_memory, 0))?;
+    sysinfo_class.define_method(
+        "available_memory",
+        method!(MutRbSysinfo::available_memory, 0),
+    )?;
+    sysinfo_class.define_method("used_memory", method!(MutRbSysinfo::used_memory, 0))?;
+    sysinfo_class.define_method("total_swap", method!(MutRbSysinfo::total_swap, 0))?;
+    sysinfo_class.define_method("free_swap", method!(MutRbSysinfo::free_swap, 0))?;
+    sysinfo_class.define_method("used_swap", method!(MutRbSysinfo::used_swap, 0))?;
+
+    sysinfo_class.define_method("uptime", method!(MutRbSysinfo::uptime, 0))?;
+    sysinfo_class.define_method("boot_time", method!(MutRbSysinfo::boot_time, 0))?;
+    sysinfo_class.define_method("name", method!(MutRbSysinfo::name, 0))?;
+    sysinfo_class.define_method("kernel_version", method!(MutRbSysinfo::kernel_version, 0))?;
+    sysinfo_class.define_method("os_version", method!(MutRbSysinfo::os_version, 0))?;
+    sysinfo_class.define_method("long_os_version", method!(MutRbSysinfo::long_os_version, 0))?;
+    sysinfo_class.define_method("distribution_id", method!(MutRbSysinfo::distribution_id, 0))?;
+    sysinfo_class.define_method("host_name", method!(MutRbSysinfo::host_name, 0))?;
 
     Ok(())
 }

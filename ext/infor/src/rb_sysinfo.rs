@@ -93,7 +93,7 @@ impl MutRbSysinfo {
     // fn global_cpu_info(&self) -> &Cpu;
 
     // Returns the list of the CPUs.
-    // pub fn cpus(&mut self) -> Vec<PyCpu> {
+    // pub fn cpus(&self) -> Vec<PyCpu> {
 
     // Returns the number of physical cores on the CPU or `None` if it couldn't get it.
     // fn physical_core_count(&self) -> Option<usize>;
@@ -131,5 +131,62 @@ impl MutRbSysinfo {
     /// Returns the amount of used SWAP in bytes.
     pub fn used_swap(&self) -> u64 {
         self.0.borrow_mut().sys.free_swap()
+    }
+
+    /// Returns system uptime (in seconds).
+    pub fn uptime(&self) -> u64 {
+        self.0.borrow_mut().sys.uptime()
+    }
+
+    /// Returns the time (in seconds) when the system booted since UNIX epoch.
+    pub fn boot_time(&self) -> u64 {
+        self.0.borrow_mut().sys.boot_time()
+    }
+
+    // Returns the system load average value.
+    // fn load_average(&self) -> LoadAvg;
+
+    /// Returns the system name.
+    pub fn name(&self) -> Option<String> {
+        self.0.borrow_mut().sys.name()
+    }
+
+    /// Returns the system's kernel version.
+    pub fn kernel_version(&self) -> Option<String> {
+        self.0.borrow_mut().sys.kernel_version()
+    }
+
+    /// Returns the system version (e.g. for MacOS this will return 11.1 rather than the kernel version).
+    pub fn os_version(&self) -> Option<String> {
+        self.0.borrow_mut().sys.os_version()
+    }
+
+    /// Returns the system long os version (e.g "MacOS 11.2 BigSur").
+
+    pub fn long_os_version(&self) -> Option<String> {
+        self.0.borrow_mut().sys.long_os_version()
+    }
+
+    /// Returns the distribution id as defined by os-release,
+    pub fn distribution_id(&self) -> String {
+        self.0.borrow_mut().sys.distribution_id()
+    }
+
+    /// Returns the system hostname based off DNS
+    pub fn host_name(&self) -> Option<String> {
+        self.0.borrow_mut().sys.host_name()
+    }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "Sysinfo(total_memory={}, free_memory={}, available_memory={}, used_memory={}, total_swap={}, free_swap={}, used_swap={})",
+            self.0.borrow_mut().sys.total_memory(),
+            self.0.borrow_mut().sys.free_memory(),
+            self.0.borrow_mut().sys.available_memory(),
+            self.0.borrow_mut().sys.used_memory(),
+            self.0.borrow_mut().sys.total_swap(),
+            self.0.borrow_mut().sys.free_swap(),
+            self.0.borrow_mut().sys.used_swap()
+        )
     }
 }
