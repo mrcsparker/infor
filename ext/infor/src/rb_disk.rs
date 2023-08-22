@@ -1,4 +1,4 @@
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[magnus::wrap(class = "Infor::Disk", free_immediately, size)]
 pub struct RbDisk {
     pub name: String,
@@ -9,6 +9,22 @@ pub struct RbDisk {
 }
 
 impl RbDisk {
+    pub fn new(
+        name: String,
+        mount_point: String,
+        total_space: u64,
+        available_space: u64,
+        is_removable: bool,
+    ) -> Self {
+        Self {
+            name,
+            mount_point,
+            total_space,
+            available_space,
+            is_removable,
+        }
+    }
+
     pub fn name(&self) -> String {
         self.name.clone()
     }
@@ -37,5 +53,9 @@ impl RbDisk {
         hash.aset("available_space", self.available_space())?;
         hash.aset("is_removable", self.is_removable())?;
         Ok(hash)
+    }
+
+    pub fn to_str(&self) -> Result<String, magnus::Error> {
+        Ok(format!("{self:?}"))
     }
 }

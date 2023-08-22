@@ -2,10 +2,12 @@ use magnus::{exception, Error, RArray};
 use rayon::prelude::*;
 use std::cell::RefCell;
 
-use sysinfo::{CpuExt, DiskExt, System, SystemExt};
+use sysinfo::{ComponentExt, CpuExt, DiskExt, System, SystemExt, UserExt};
 
+use crate::rb_component::RbComponent;
 use crate::rb_cpu::RbCpu;
 use crate::rb_disk::RbDisk;
+use crate::rb_user::RbUser;
 
 #[magnus::wrap(class = "Infor::Sysinfo", free_immediately, size)]
 pub struct RbSysinfo(RefCell<System>);
@@ -96,13 +98,13 @@ impl RbSysinfo {
         let array = RArray::new();
 
         self.0.borrow_mut().cpus().iter().for_each(|c| {
-            let cpu = RbCpu {
-                cpu_usage: c.cpu_usage(),
-                name: c.name().to_string(),
-                vendor_id: c.vendor_id().to_string(),
-                brand: c.brand().to_string(),
-                frequency: c.frequency(),
-            };
+            let cpu = RbCpu::new(
+                c.cpu_usage(),
+                c.name().to_string(),
+                c.vendor_id().to_string(),
+                c.brand().to_string(),
+                c.frequency(),
+            );
             match array.push(cpu) {
                 Ok(_) => {}
                 Err(e) => Err(Error::new(exception::runtime_error(), format!("{e:?}"))).unwrap(),
@@ -149,18 +151,56 @@ impl RbSysinfo {
         self.0.borrow_mut().free_swap()
     }
 
+    /// Returns the components list.
+    pub fn components(&self) -> Result<RArray, Error> {
+        let array = RArray::new();
+
+        self.0.borrow_mut().components().iter().for_each(|c| {
+            let component = RbComponent::new(
+                c.temperature(),
+                c.max(),
+                c.critical(),
+                c.label().to_string(),
+            );
+            match array.push(component) {
+                Ok(_) => {}
+                Err(e) => Err(Error::new(exception::runtime_error(), format!("{e:?}"))).unwrap(),
+            }
+        });
+        Ok(array)
+    }
+
+    /// Returns the users list.
+    pub fn users(&self) -> Result<RArray, Error> {
+        let array = RArray::new();
+
+        self.0.borrow_mut().users().iter().for_each(|u| {
+            let user = RbUser::new(
+                u.id().to_string(),
+                u.group_id().to_string(),
+                u.name().to_string(),
+                u.groups().to_vec(),
+            );
+            match array.push(user) {
+                Ok(_) => {}
+                Err(e) => Err(Error::new(exception::runtime_error(), format!("{e:?}"))).unwrap(),
+            }
+        });
+        Ok(array)
+    }
+
     /// Returns the disks list.
     pub fn disks(&self) -> Result<RArray, Error> {
         let array = RArray::new();
 
         self.0.borrow_mut().disks().iter().for_each(|disk| {
-            let disk = RbDisk {
-                name: disk.name().to_str().unwrap_or("").to_string(),
-                mount_point: disk.mount_point().to_str().unwrap_or("").to_string(),
-                total_space: disk.total_space(),
-                available_space: disk.available_space(),
-                is_removable: disk.is_removable(),
-            };
+            let disk = RbDisk::new(
+                disk.name().to_str().unwrap_or("").to_string(),
+                disk.mount_point().to_str().unwrap_or("").to_string(),
+                disk.total_space(),
+                disk.available_space(),
+                disk.is_removable(),
+            );
             match array.push(disk) {
                 Ok(_) => {}
                 Err(e) => Err(Error::new(exception::runtime_error(), format!("{e:?}"))).unwrap(),
@@ -210,18 +250,5 @@ impl RbSysinfo {
     /// Returns the system hostname based off DNS
     pub fn host_name(&self) -> Option<String> {
         self.0.borrow_mut().host_name()
-    }
-
-    fn __repr__(&self) -> String {
-        format!(
-            "Sysinfo(total_memory={}, free_memory={}, available_memory={}, used_memory={}, total_swap={}, free_swap={}, used_swap={})",
-            self.0.borrow_mut().total_memory(),
-            self.0.borrow_mut().free_memory(),
-            self.0.borrow_mut().available_memory(),
-            self.0.borrow_mut().used_memory(),
-            self.0.borrow_mut().total_swap(),
-            self.0.borrow_mut().free_swap(),
-            self.0.borrow_mut().used_swap()
-        )
     }
 }

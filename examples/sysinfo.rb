@@ -9,12 +9,26 @@ sys = Infor::Sysinfo.new()
 # First we update all information of our `System` struct.
 sys.refresh_all()
 
-puts("=> system:")
+# We display all disks' information:
+puts("\n=> disks:")
+sys.disks.each do |disk|
+    puts disk.to_hash
+end
+
+# Components temperature:
+puts("\n=> components:")
+sys.components.each do |component|
+    puts component.to_hash
+end
+
+puts("\n=> system:")
 # RAM and swap information:
 puts("total memory: #{sys.total_memory} bytes")
 puts("used memory : #{sys.used_memory} bytes")
 puts("total swap  : #{sys.total_swap} bytes")
 puts("used swap   : #{sys.used_swap} bytes")
+
+puts("\n")
 
 # Display system information:
 puts("System name:             #{sys.name}")
@@ -22,6 +36,5 @@ puts("System kernel version:   #{sys.kernel_version}")
 puts("System OS version:       #{sys.os_version}")
 puts("System host name:        #{sys.host_name}")
 
-sys.disks.each do |disk|
-    p disk.name
-end
+# Number of CPUs:
+puts("\nNB CPUs: #{sys.cpus.size}")

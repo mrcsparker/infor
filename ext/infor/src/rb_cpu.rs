@@ -1,4 +1,4 @@
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[magnus::wrap(class = "Infor::Cpu", free_immediately, size)]
 pub struct RbCpu {
     pub cpu_usage: f32,
@@ -9,6 +9,22 @@ pub struct RbCpu {
 }
 
 impl RbCpu {
+    pub fn new(
+        cpu_usage: f32,
+        name: String,
+        vendor_id: String,
+        brand: String,
+        frequency: u64,
+    ) -> Self {
+        Self {
+            cpu_usage,
+            name,
+            vendor_id,
+            brand,
+            frequency,
+        }
+    }
+
     pub fn cpu_usage(&self) -> f32 {
         self.cpu_usage
     }
@@ -37,5 +53,9 @@ impl RbCpu {
         hash.aset("brand", self.brand())?;
         hash.aset("frequency", self.frequency())?;
         Ok(hash)
+    }
+
+    pub fn to_str(&self) -> Result<String, magnus::Error> {
+        Ok(format!("{self:?}"))
     }
 }
