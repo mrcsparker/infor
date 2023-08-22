@@ -1,80 +1,78 @@
+use magnus::{exception, Error, RArray};
+use rayon::prelude::*;
 use std::cell::RefCell;
 
-use sysinfo::{System, SystemExt};
+use sysinfo::{DiskExt, System, SystemExt};
 
-pub struct RbSysinfo {
-    sys: System,
-}
+use crate::rb_disk::RbDisk;
 
-#[magnus::wrap(class = "Infor::Sysinfo")]
-pub struct MutRbSysinfo(RefCell<RbSysinfo>);
+#[magnus::wrap(class = "Infor::Sysinfo", free_immediately, size)]
+pub struct RbSysinfo(RefCell<System>);
 
-impl MutRbSysinfo {
+impl RbSysinfo {
     pub fn new() -> Self {
-        Self(RefCell::new(RbSysinfo {
-            sys: System::new_all(),
-        }))
+        Self(RefCell::new(System::new_all()))
     }
 
     /// Refreshes all system, processes, disks and network interfaces information.
     pub fn refresh_all(&self) {
-        self.0.borrow_mut().sys.refresh_all()
+        self.0.borrow_mut().refresh_all()
     }
 
     /// Refreshes system information (RAM, swap, CPU usage and components' temperature).
     pub fn refresh_system(&self) {
-        self.0.borrow_mut().sys.refresh_system()
+        self.0.borrow_mut().refresh_system()
     }
 
     /// Refreshes RAM and SWAP usage.
     pub fn refresh_memory(&self) {
-        self.0.borrow_mut().sys.refresh_memory()
+        self.0.borrow_mut().refresh_memory()
     }
 
     /// Refreshes CPUs information.
     pub fn refresh_cpu(&self) {
-        self.0.borrow_mut().sys.refresh_cpu()
+        self.0.borrow_mut().refresh_cpu()
     }
 
     /// Refreshes components' temperature.
     pub fn refresh_components(&self) {
-        self.0.borrow_mut().sys.refresh_components()
+        self.0.borrow_mut().refresh_components()
     }
 
     /// Refreshes components list.
     pub fn refresh_components_list(&self) {
-        self.0.borrow_mut().sys.refresh_components_list()
+        self.0.borrow_mut().refresh_components_list()
     }
 
     /// Gets all processes and updates their information.
     pub fn refresh_processes(&self) {
-        self.0.borrow_mut().sys.refresh_processes()
+        self.0.borrow_mut().refresh_processes()
     }
 
     /// Refreshes the listed disks' information.
     pub fn refresh_disks(&self) {
-        self.0.borrow_mut().sys.refresh_disks()
+        self.0.borrow_mut().refresh_disks()
     }
 
     /// The disk list will be emptied then completely recomputed.
     pub fn refresh_disks_list(&self) {
-        self.0.borrow_mut().sys.refresh_disks_list()
+        self.0.borrow_mut().refresh_disks_list()
     }
 
     /// Refreshes users list.
     pub fn refresh_users_list(&self) {
-        self.0.borrow_mut().sys.refresh_users_list()
+        self.0.borrow_mut().refresh_users_list()
     }
 
     /// Refreshes networks data.
     pub fn refresh_networks(&self) {
-        self.0.borrow_mut().sys.refresh_networks()
+        self.0.borrow_mut().refresh_networks()
     }
 
     /// The network list will be updated: removing not existing anymore interfaces and adding new
     /// ones.
     pub fn refresh_networks_list(&self) {
-        self.0.borrow_mut().sys.refresh_networks_list()
+        self.0.borrow_mut().refresh_networks_list()
     }
 
     // Returns the process list.
@@ -100,47 +98,67 @@ impl MutRbSysinfo {
 
     /// Returns the RAM size in bytes.
     pub fn total_memory(&self) -> u64 {
-        self.0.borrow_mut().sys.total_memory()
+        self.0.borrow_mut().total_memory()
     }
 
     /// Returns the amount of free RAM in bytes.
     pub fn free_memory(&self) -> u64 {
-        self.0.borrow_mut().sys.free_memory()
+        self.0.borrow_mut().free_memory()
     }
 
     /// Returns the amount of available RAM in bytes.
     pub fn available_memory(&self) -> u64 {
-        self.0.borrow_mut().sys.available_memory()
+        self.0.borrow_mut().available_memory()
     }
 
     /// Returns the amount of used RAM in bytes.
     pub fn used_memory(&self) -> u64 {
-        self.0.borrow_mut().sys.used_memory()
+        self.0.borrow_mut().used_memory()
     }
 
     /// Returns the SWAP size in bytes.
     pub fn total_swap(&self) -> u64 {
-        self.0.borrow_mut().sys.total_swap()
+        self.0.borrow_mut().total_swap()
     }
 
     /// Returns the amount of free SWAP in bytes.
     pub fn free_swap(&self) -> u64 {
-        self.0.borrow_mut().sys.free_swap()
+        self.0.borrow_mut().free_swap()
     }
 
     /// Returns the amount of used SWAP in bytes.
     pub fn used_swap(&self) -> u64 {
-        self.0.borrow_mut().sys.free_swap()
+        self.0.borrow_mut().free_swap()
+    }
+
+    /// Returns the disks list.
+    pub fn disks(&self) -> Result<RArray, Error> {
+        let array = RArray::new();
+
+        self.0.borrow_mut().disks().iter().for_each(|disk| {
+            let disk = RbDisk {
+                name: disk.name().to_str().unwrap_or("").to_string(),
+                mount_point: disk.mount_point().to_str().unwrap_or("").to_string(),
+                total_space: disk.total_space(),
+                available_space: disk.available_space(),
+                is_removable: disk.is_removable(),
+            };
+            match array.push(disk) {
+                Ok(_) => {}
+                Err(e) => Err(Error::new(exception::runtime_error(), format!("{e:?}"))).unwrap(),
+            }
+        });
+        Ok(array)
     }
 
     /// Returns system uptime (in seconds).
     pub fn uptime(&self) -> u64 {
-        self.0.borrow_mut().sys.uptime()
+        self.0.borrow_mut().uptime()
     }
 
     /// Returns the time (in seconds) when the system booted since UNIX epoch.
     pub fn boot_time(&self) -> u64 {
-        self.0.borrow_mut().sys.boot_time()
+        self.0.borrow_mut().boot_time()
     }
 
     // Returns the system load average value.
@@ -148,45 +166,44 @@ impl MutRbSysinfo {
 
     /// Returns the system name.
     pub fn name(&self) -> Option<String> {
-        self.0.borrow_mut().sys.name()
+        self.0.borrow_mut().name()
     }
 
     /// Returns the system's kernel version.
     pub fn kernel_version(&self) -> Option<String> {
-        self.0.borrow_mut().sys.kernel_version()
+        self.0.borrow_mut().kernel_version()
     }
 
     /// Returns the system version (e.g. for MacOS this will return 11.1 rather than the kernel version).
     pub fn os_version(&self) -> Option<String> {
-        self.0.borrow_mut().sys.os_version()
+        self.0.borrow_mut().os_version()
     }
 
     /// Returns the system long os version (e.g "MacOS 11.2 BigSur").
-
     pub fn long_os_version(&self) -> Option<String> {
-        self.0.borrow_mut().sys.long_os_version()
+        self.0.borrow_mut().long_os_version()
     }
 
     /// Returns the distribution id as defined by os-release,
     pub fn distribution_id(&self) -> String {
-        self.0.borrow_mut().sys.distribution_id()
+        self.0.borrow_mut().distribution_id()
     }
 
     /// Returns the system hostname based off DNS
     pub fn host_name(&self) -> Option<String> {
-        self.0.borrow_mut().sys.host_name()
+        self.0.borrow_mut().host_name()
     }
 
     fn __repr__(&self) -> String {
         format!(
             "Sysinfo(total_memory={}, free_memory={}, available_memory={}, used_memory={}, total_swap={}, free_swap={}, used_swap={})",
-            self.0.borrow_mut().sys.total_memory(),
-            self.0.borrow_mut().sys.free_memory(),
-            self.0.borrow_mut().sys.available_memory(),
-            self.0.borrow_mut().sys.used_memory(),
-            self.0.borrow_mut().sys.total_swap(),
-            self.0.borrow_mut().sys.free_swap(),
-            self.0.borrow_mut().sys.used_swap()
+            self.0.borrow_mut().total_memory(),
+            self.0.borrow_mut().free_memory(),
+            self.0.borrow_mut().available_memory(),
+            self.0.borrow_mut().used_memory(),
+            self.0.borrow_mut().total_swap(),
+            self.0.borrow_mut().free_swap(),
+            self.0.borrow_mut().used_swap()
         )
     }
 }

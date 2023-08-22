@@ -21,3 +21,7 @@ puts("System name:             #{sys.name}")
 puts("System kernel version:   #{sys.kernel_version}")
 puts("System OS version:       #{sys.os_version}")
 puts("System host name:        #{sys.host_name}")
+
+sys.disks.each do |disk|
+    p disk.to_string
+end
