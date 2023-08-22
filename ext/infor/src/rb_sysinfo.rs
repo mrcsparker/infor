@@ -2,8 +2,9 @@ use magnus::{exception, Error, RArray};
 use rayon::prelude::*;
 use std::cell::RefCell;
 
-use sysinfo::{DiskExt, System, SystemExt};
+use sysinfo::{CpuExt, DiskExt, System, SystemExt};
 
+use crate::rb_cpu::RbCpu;
 use crate::rb_disk::RbDisk;
 
 #[magnus::wrap(class = "Infor::Sysinfo", free_immediately, size)]
@@ -91,7 +92,24 @@ impl RbSysinfo {
     // fn global_cpu_info(&self) -> &Cpu;
 
     // Returns the list of the CPUs.
-    // pub fn cpus(&self) -> Vec<PyCpu> {
+    pub fn cpus(&self) -> Result<RArray, Error> {
+        let array = RArray::new();
+
+        self.0.borrow_mut().cpus().iter().for_each(|c| {
+            let cpu = RbCpu {
+                cpu_usage: c.cpu_usage(),
+                name: c.name().to_string(),
+                vendor_id: c.vendor_id().to_string(),
+                brand: c.brand().to_string(),
+                frequency: c.frequency(),
+            };
+            match array.push(cpu) {
+                Ok(_) => {}
+                Err(e) => Err(Error::new(exception::runtime_error(), format!("{e:?}"))).unwrap(),
+            }
+        });
+        Ok(array)
+    }
 
     // Returns the number of physical cores on the CPU or `None` if it couldn't get it.
     // fn physical_core_count(&self) -> Option<usize>;

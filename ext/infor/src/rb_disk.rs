@@ -9,10 +9,33 @@ pub struct RbDisk {
 }
 
 impl RbDisk {
-    pub fn to_string(&self) -> String {
-        format!(
-            "Disk(name={}, mount_point={}, total_space={}, available_space={}, is_removable={})",
-            self.name, self.mount_point, self.total_space, self.available_space, self.is_removable
-        )
+    pub fn name(&self) -> String {
+        self.name.clone()
+    }
+
+    pub fn mount_point(&self) -> String {
+        self.mount_point.clone()
+    }
+
+    pub fn total_space(&self) -> u64 {
+        self.total_space
+    }
+
+    pub fn available_space(&self) -> u64 {
+        self.available_space
+    }
+
+    pub fn is_removable(&self) -> bool {
+        self.is_removable
+    }
+
+    pub fn to_hash(&self) -> Result<magnus::RHash, magnus::Error> {
+        let hash = magnus::RHash::new();
+        hash.aset("name", self.name())?;
+        hash.aset("mount_point", self.mount_point())?;
+        hash.aset("total_space", self.total_space())?;
+        hash.aset("available_space", self.available_space())?;
+        hash.aset("is_removable", self.is_removable())?;
+        Ok(hash)
     }
 }

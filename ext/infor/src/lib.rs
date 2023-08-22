@@ -1,8 +1,10 @@
 use magnus::{class, define_module, function, method, prelude::*, Error};
 
+mod rb_cpu;
 mod rb_disk;
 mod rb_sysinfo;
 
+use rb_cpu::RbCpu;
 use rb_disk::RbDisk;
 use rb_sysinfo::RbSysinfo;
 
@@ -46,6 +48,8 @@ fn init() -> Result<(), Error> {
         method!(RbSysinfo::refresh_networks_list, 0),
     )?;
 
+    sysinfo_class.define_method("cpus", method!(RbSysinfo::cpus, 0))?;
+
     sysinfo_class.define_method("total_memory", method!(RbSysinfo::total_memory, 0))?;
     sysinfo_class.define_method("free_memory", method!(RbSysinfo::free_memory, 0))?;
     sysinfo_class.define_method("available_memory", method!(RbSysinfo::available_memory, 0))?;
@@ -67,7 +71,21 @@ fn init() -> Result<(), Error> {
 
     // Disk class
     let disk_class = namespace.define_class("Disk", class::object())?;
-    disk_class.define_method("to_string", method!(RbDisk::to_string, 0))?;
+    disk_class.define_method("name", method!(RbDisk::name, 0))?;
+    disk_class.define_method("mount_point", method!(RbDisk::mount_point, 0))?;
+    disk_class.define_method("total_space", method!(RbDisk::total_space, 0))?;
+    disk_class.define_method("available_space", method!(RbDisk::available_space, 0))?;
+    disk_class.define_method("is_removable", method!(RbDisk::is_removable, 0))?;
+    disk_class.define_method("to_hash", method!(RbDisk::to_hash, 0))?;
+
+    // Cpu class
+    let cpu_class = namespace.define_class("Cpu", class::object())?;
+    cpu_class.define_method("cpu_usage", method!(RbCpu::cpu_usage, 0))?;
+    cpu_class.define_method("name", method!(RbCpu::name, 0))?;
+    cpu_class.define_method("vendor_id", method!(RbCpu::vendor_id, 0))?;
+    cpu_class.define_method("brand", method!(RbCpu::brand, 0))?;
+    cpu_class.define_method("frequency", method!(RbCpu::frequency, 0))?;
+    cpu_class.define_method("to_hash", method!(RbCpu::to_hash, 0))?;
 
     Ok(())
 }

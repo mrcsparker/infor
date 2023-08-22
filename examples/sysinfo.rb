@@ -23,5 +23,5 @@ puts("System OS version:       #{sys.os_version}")
 puts("System host name:        #{sys.host_name}")
 
 sys.disks.each do |disk|
-    p disk.to_string
+    p disk.name
 end
