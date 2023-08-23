@@ -1,22 +1,16 @@
 # Infor
 
-WORK IN PROGRESS.
-
-TODO: Delete this and the text below, and describe your gem
-
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/infor`. To experiment with that code, run `bin/console` for an interactive prompt.
+Ruby wrapper for [Sysinfo](https://github.com/GuillaumeGomez/sysinfo)
 
 ## Installation
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_PRIOR_TO_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
-
 Install the gem and add to the application's Gemfile by executing:
 
-    $ bundle add UPDATE_WITH_YOUR_GEM_NAME_PRIOR_TO_RELEASE_TO_RUBYGEMS_ORG
+    $ bundle add infor
 
 If bundler is not being used to manage dependencies, install the gem by executing:
 
-    $ gem install UPDATE_WITH_YOUR_GEM_NAME_PRIOR_TO_RELEASE_TO_RUBYGEMS_ORG
+    $ gem install infor
 
 ## Usage
 
@@ -33,6 +27,12 @@ sys.refresh_all()
 puts("\n=> disks:")
 sys.disks.each do |disk|
     puts disk.to_hash
+end
+
+# Network interfaces name, data received and data transmitted:
+puts("\n=> networks:")
+sys.networks.each do |network|
+    puts("#{network.interface}: #{network.received}/#{network.transmitted} B")
 end
 
 # Components temperature:
