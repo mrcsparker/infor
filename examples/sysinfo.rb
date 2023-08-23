@@ -15,6 +15,12 @@ sys.disks.each do |disk|
     puts disk.to_hash
 end
 
+# Network interfaces name, data received and data transmitted:
+puts("\n=> networks:")
+sys.networks.each do |network|
+    puts("#{network.interface}: #{network.received}/#{network.transmitted} B")
+end
+
 # Components temperature:
 puts("\n=> components:")
 sys.components.each do |component|

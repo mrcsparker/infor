@@ -3,12 +3,14 @@ use magnus::{class, define_module, function, method, prelude::*, Error};
 mod rb_component;
 mod rb_cpu;
 mod rb_disk;
+mod rb_network;
 mod rb_sysinfo;
 mod rb_user;
 
 use rb_component::RbComponent;
 use rb_cpu::RbCpu;
 use rb_disk::RbDisk;
+use rb_network::RbNetwork;
 use rb_sysinfo::RbSysinfo;
 use rb_user::RbUser;
 
@@ -65,6 +67,7 @@ fn init() -> Result<(), Error> {
     sysinfo_class.define_method("components", method!(RbSysinfo::components, 0))?;
     sysinfo_class.define_method("users", method!(RbSysinfo::users, 0))?;
     sysinfo_class.define_method("disks", method!(RbSysinfo::disks, 0))?;
+    sysinfo_class.define_method("networks", method!(RbSysinfo::networks, 0))?;
 
     sysinfo_class.define_method("uptime", method!(RbSysinfo::uptime, 0))?;
     sysinfo_class.define_method("boot_time", method!(RbSysinfo::boot_time, 0))?;
@@ -112,6 +115,48 @@ fn init() -> Result<(), Error> {
     disk_class.define_method("is_removable", method!(RbDisk::is_removable, 0))?;
     disk_class.define_method("to_hash", method!(RbDisk::to_hash, 0))?;
     disk_class.define_method("_to_str", method!(RbDisk::to_str, 0))?;
+
+    // Networks class
+    let networks_class = namespace.define_class("Network", class::object())?;
+    networks_class.define_method("interface", method!(RbNetwork::interface, 0))?;
+    networks_class.define_method("received", method!(RbNetwork::received, 0))?;
+    networks_class.define_method("total_received", method!(RbNetwork::total_received, 0))?;
+    networks_class.define_method("transmitted", method!(RbNetwork::transmitted, 0))?;
+    networks_class.define_method(
+        "total_transmitted",
+        method!(RbNetwork::total_transmitted, 0),
+    )?;
+    networks_class.define_method("packets_received", method!(RbNetwork::packets_received, 0))?;
+    networks_class.define_method(
+        "total_packets_received",
+        method!(RbNetwork::total_packets_received, 0),
+    )?;
+    networks_class.define_method(
+        "packets_transmitted",
+        method!(RbNetwork::packets_transmitted, 0),
+    )?;
+    networks_class.define_method(
+        "total_packets_transmitted",
+        method!(RbNetwork::total_packets_transmitted, 0),
+    )?;
+    networks_class.define_method(
+        "errors_on_received",
+        method!(RbNetwork::errors_on_received, 0),
+    )?;
+    networks_class.define_method(
+        "total_errors_on_received",
+        method!(RbNetwork::total_errors_on_received, 0),
+    )?;
+    networks_class.define_method(
+        "errors_on_transmitted",
+        method!(RbNetwork::errors_on_transmitted, 0),
+    )?;
+    networks_class.define_method(
+        "total_errors_on_transmitted",
+        method!(RbNetwork::total_errors_on_transmitted, 0),
+    )?;
+    networks_class.define_method("to_hash", method!(RbNetwork::to_hash, 0))?;
+    networks_class.define_method("_to_str", method!(RbNetwork::to_str, 0))?;
 
     Ok(())
 }
