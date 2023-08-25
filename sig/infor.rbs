@@ -4,4 +4,19 @@ module Infor
   # 
   class Sysinfo
   end
+
+  class Component
+  end
+
+  class Cpu
+  end
+
+  class Disk
+  end
+
+  class Network
+  end
+
+  class User
+  end
 end

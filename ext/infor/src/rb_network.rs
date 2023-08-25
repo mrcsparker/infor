@@ -1,3 +1,5 @@
+use magnus::{class, method, Module, RModule};
+
 #[derive(Clone, Debug)]
 #[magnus::wrap(class = "Infor::Network", free_immediately, size)]
 pub struct RbNetwork {
@@ -50,59 +52,59 @@ impl RbNetwork {
         }
     }
 
-    pub fn interface(&self) -> String {
+    fn interface(&self) -> String {
         self.interface.to_string()
     }
 
-    pub fn received(&self) -> u64 {
+    fn received(&self) -> u64 {
         self.received
     }
 
-    pub fn total_received(&self) -> u64 {
+    fn total_received(&self) -> u64 {
         self.total_received
     }
 
-    pub fn transmitted(&self) -> u64 {
+    fn transmitted(&self) -> u64 {
         self.transmitted
     }
 
-    pub fn total_transmitted(&self) -> u64 {
+    fn total_transmitted(&self) -> u64 {
         self.total_transmitted
     }
 
-    pub fn packets_received(&self) -> u64 {
+    fn packets_received(&self) -> u64 {
         self.packets_received
     }
 
-    pub fn total_packets_received(&self) -> u64 {
+    fn total_packets_received(&self) -> u64 {
         self.total_packets_received
     }
 
-    pub fn packets_transmitted(&self) -> u64 {
+    fn packets_transmitted(&self) -> u64 {
         self.packets_transmitted
     }
 
-    pub fn total_packets_transmitted(&self) -> u64 {
+    fn total_packets_transmitted(&self) -> u64 {
         self.total_packets_transmitted
     }
 
-    pub fn errors_on_received(&self) -> u64 {
+    fn errors_on_received(&self) -> u64 {
         self.errors_on_received
     }
 
-    pub fn total_errors_on_received(&self) -> u64 {
+    fn total_errors_on_received(&self) -> u64 {
         self.total_errors_on_received
     }
 
-    pub fn errors_on_transmitted(&self) -> u64 {
+    fn errors_on_transmitted(&self) -> u64 {
         self.errors_on_transmitted
     }
 
-    pub fn total_errors_on_transmitted(&self) -> u64 {
+    fn total_errors_on_transmitted(&self) -> u64 {
         self.total_errors_on_transmitted
     }
 
-    pub fn to_hash(&self) -> Result<magnus::RHash, magnus::Error> {
+    fn to_hash(&self) -> Result<magnus::RHash, magnus::Error> {
         let hash = magnus::RHash::new();
         hash.aset("interface", self.interface())?;
         hash.aset("received", self.received())?;
@@ -126,7 +128,51 @@ impl RbNetwork {
         Ok(hash)
     }
 
-    pub fn to_str(&self) -> Result<String, magnus::Error> {
+    fn to_str(&self) -> Result<String, magnus::Error> {
         Ok(format!("{self:?}"))
     }
+}
+
+pub fn setup(namespace: RModule) -> Result<(), magnus::Error> {
+    let network_class = namespace.define_class("Network", class::object())?;
+    network_class.define_method("interface", method!(RbNetwork::interface, 0))?;
+    network_class.define_method("received", method!(RbNetwork::received, 0))?;
+    network_class.define_method("total_received", method!(RbNetwork::total_received, 0))?;
+    network_class.define_method("transmitted", method!(RbNetwork::transmitted, 0))?;
+    network_class.define_method(
+        "total_transmitted",
+        method!(RbNetwork::total_transmitted, 0),
+    )?;
+    network_class.define_method("packets_received", method!(RbNetwork::packets_received, 0))?;
+    network_class.define_method(
+        "total_packets_received",
+        method!(RbNetwork::total_packets_received, 0),
+    )?;
+    network_class.define_method(
+        "packets_transmitted",
+        method!(RbNetwork::packets_transmitted, 0),
+    )?;
+    network_class.define_method(
+        "total_packets_transmitted",
+        method!(RbNetwork::total_packets_transmitted, 0),
+    )?;
+    network_class.define_method(
+        "errors_on_received",
+        method!(RbNetwork::errors_on_received, 0),
+    )?;
+    network_class.define_method(
+        "total_errors_on_received",
+        method!(RbNetwork::total_errors_on_received, 0),
+    )?;
+    network_class.define_method(
+        "errors_on_transmitted",
+        method!(RbNetwork::errors_on_transmitted, 0),
+    )?;
+    network_class.define_method(
+        "total_errors_on_transmitted",
+        method!(RbNetwork::total_errors_on_transmitted, 0),
+    )?;
+    network_class.define_method("to_hash", method!(RbNetwork::to_hash, 0))?;
+    network_class.define_method("_to_str", method!(RbNetwork::to_str, 0))?;
+    Ok(())
 }

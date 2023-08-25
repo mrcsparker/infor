@@ -1,3 +1,5 @@
+use magnus::{class, method, Module, RModule};
+
 #[derive(Clone, Debug)]
 #[magnus::wrap(class = "Infor::Disk", free_immediately, size)]
 pub struct RbDisk {
@@ -25,27 +27,27 @@ impl RbDisk {
         }
     }
 
-    pub fn name(&self) -> String {
+    fn name(&self) -> String {
         self.name.clone()
     }
 
-    pub fn mount_point(&self) -> String {
+    fn mount_point(&self) -> String {
         self.mount_point.clone()
     }
 
-    pub fn total_space(&self) -> u64 {
+    fn total_space(&self) -> u64 {
         self.total_space
     }
 
-    pub fn available_space(&self) -> u64 {
+    fn available_space(&self) -> u64 {
         self.available_space
     }
 
-    pub fn is_removable(&self) -> bool {
+    fn is_removable(&self) -> bool {
         self.is_removable
     }
 
-    pub fn to_hash(&self) -> Result<magnus::RHash, magnus::Error> {
+    fn to_hash(&self) -> Result<magnus::RHash, magnus::Error> {
         let hash = magnus::RHash::new();
         hash.aset("name", self.name())?;
         hash.aset("mount_point", self.mount_point())?;
@@ -55,7 +57,19 @@ impl RbDisk {
         Ok(hash)
     }
 
-    pub fn to_str(&self) -> Result<String, magnus::Error> {
+    fn to_str(&self) -> Result<String, magnus::Error> {
         Ok(format!("{self:?}"))
     }
+}
+
+pub fn setup(namespace: RModule) -> Result<(), magnus::Error> {
+    let disk_class = namespace.define_class("Disk", class::object())?;
+    disk_class.define_method("name", method!(RbDisk::name, 0))?;
+    disk_class.define_method("mount_point", method!(RbDisk::mount_point, 0))?;
+    disk_class.define_method("total_space", method!(RbDisk::total_space, 0))?;
+    disk_class.define_method("available_space", method!(RbDisk::available_space, 0))?;
+    disk_class.define_method("is_removable", method!(RbDisk::is_removable, 0))?;
+    disk_class.define_method("to_hash", method!(RbDisk::to_hash, 0))?;
+    disk_class.define_method("_to_str", method!(RbDisk::to_str, 0))?;
+    Ok(())
 }

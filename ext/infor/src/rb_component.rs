@@ -1,3 +1,5 @@
+use magnus::{class, method, Module, RModule};
+
 #[derive(Clone, Debug)]
 #[magnus::wrap(class = "Infor::Component", free_immediately, size)]
 pub struct RbComponent {
@@ -17,23 +19,23 @@ impl RbComponent {
         }
     }
 
-    pub fn temperature(&self) -> f32 {
+    fn temperature(&self) -> f32 {
         self.temperature
     }
 
-    pub fn max(&self) -> f32 {
+    fn max(&self) -> f32 {
         self.max
     }
 
-    pub fn critical(&self) -> Option<f32> {
+    fn critical(&self) -> Option<f32> {
         self.critical
     }
 
-    pub fn label(&self) -> &str {
+    fn label(&self) -> &str {
         &self.label
     }
 
-    pub fn to_hash(&self) -> Result<magnus::RHash, magnus::Error> {
+    fn to_hash(&self) -> Result<magnus::RHash, magnus::Error> {
         let hash = magnus::RHash::new();
         hash.aset("temperature", self.temperature())?;
         hash.aset("max", self.max())?;
@@ -42,7 +44,18 @@ impl RbComponent {
         Ok(hash)
     }
 
-    pub fn to_str(&self) -> Result<String, magnus::Error> {
+    fn to_str(&self) -> Result<String, magnus::Error> {
         Ok(format!("{self:?}"))
     }
+}
+
+pub fn setup(namespace: RModule) -> Result<(), magnus::Error> {
+    let component_class = namespace.define_class("Component", class::object())?;
+    component_class.define_method("temperature", method!(RbComponent::temperature, 0))?;
+    component_class.define_method("max", method!(RbComponent::max, 0))?;
+    component_class.define_method("critical", method!(RbComponent::critical, 0))?;
+    component_class.define_method("label", method!(RbComponent::label, 0))?;
+    component_class.define_method("to_hash", method!(RbComponent::to_hash, 0))?;
+    component_class.define_method("_to_str", method!(RbComponent::to_str, 0))?;
+    Ok(())
 }

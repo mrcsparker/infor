@@ -5,5 +5,4 @@ require_relative "infor/infor"
 
 module Infor
   class Error < StandardError; end
-  # Your code goes here...
 end
