@@ -3,11 +3,14 @@ use magnus::{exception, Error, RArray};
 use rayon::prelude::*;
 use std::cell::RefCell;
 
-use sysinfo::{ComponentExt, CpuExt, DiskExt, NetworkExt, NetworksExt, System, SystemExt, UserExt};
+use sysinfo::{
+    ComponentExt, CpuExt, DiskExt, LoadAvg, NetworkExt, NetworksExt, System, SystemExt, UserExt,
+};
 
 use crate::rb_component::RbComponent;
 use crate::rb_cpu::RbCpu;
 use crate::rb_disk::RbDisk;
+use crate::rb_load_avg::RbLoadAvg;
 use crate::rb_network::RbNetwork;
 use crate::rb_user::RbUser;
 
@@ -115,8 +118,10 @@ impl RbSysinfo {
         Ok(array)
     }
 
-    // Returns the number of physical cores on the CPU or `None` if it couldn't get it.
-    // fn physical_core_count(&self) -> Option<usize>;
+    /// Returns the number of physical cores on the CPU or `None` if it couldn't get it.
+    fn physical_core_count(&self) -> Option<usize> {
+        self.0.borrow().physical_core_count()
+    }
 
     /// Returns the RAM size in bytes.
     fn total_memory(&self) -> u64 {
@@ -172,6 +177,9 @@ impl RbSysinfo {
         Ok(array)
     }
 
+    // Returns a mutable components list.
+    // fn components_mut(&mut self) -> &mut [Component];
+
     /// Returns the users list.
     fn users(&self) -> Result<RArray, Error> {
         let array = RArray::new();
@@ -212,6 +220,12 @@ impl RbSysinfo {
         Ok(array)
     }
 
+    // Returns the disks list.
+    // fn disks_mut(&mut self) -> &mut Disks;
+
+    // Sort the disk list with the provided callback.
+    // fn sort_disks_by<F>(&mut self, compare: F)
+
     /// Returns the network interfaces object.
     fn networks(&self) -> Result<RArray, Error> {
         let array = RArray::new();
@@ -246,6 +260,9 @@ impl RbSysinfo {
         Ok(array)
     }
 
+    // Returns a mutable access to network interfaces.
+    // fn networks_mut(&mut self) -> &mut Networks;
+
     /// Returns system uptime (in seconds).
     fn uptime(&self) -> u64 {
         self.0.borrow().uptime()
@@ -256,8 +273,11 @@ impl RbSysinfo {
         self.0.borrow().boot_time()
     }
 
-    // Returns the system load average value.
-    // fn load_average(&self) -> LoadAvg;
+    /// Returns the system load average value.
+    fn load_average(&self) -> RbLoadAvg {
+        let load_avg = self.0.borrow().load_average();
+        RbLoadAvg::new(load_avg.one, load_avg.five, load_avg.fifteen)
+    }
 
     /// Returns the system name.
     fn name(&self) -> Option<String> {
@@ -328,6 +348,10 @@ pub fn setup(namespace: RModule) -> Result<(), magnus::Error> {
 
     sysinfo_class.define_method("cpus", method!(RbSysinfo::cpus, 0))?;
 
+    sysinfo_class.define_method(
+        "physical_core_count",
+        method!(RbSysinfo::physical_core_count, 0),
+    )?;
     sysinfo_class.define_method("total_memory", method!(RbSysinfo::total_memory, 0))?;
     sysinfo_class.define_method("free_memory", method!(RbSysinfo::free_memory, 0))?;
     sysinfo_class.define_method("available_memory", method!(RbSysinfo::available_memory, 0))?;
@@ -343,6 +367,7 @@ pub fn setup(namespace: RModule) -> Result<(), magnus::Error> {
 
     sysinfo_class.define_method("uptime", method!(RbSysinfo::uptime, 0))?;
     sysinfo_class.define_method("boot_time", method!(RbSysinfo::boot_time, 0))?;
+    sysinfo_class.define_method("load_average", method!(RbSysinfo::load_average, 0))?;
     sysinfo_class.define_method("name", method!(RbSysinfo::name, 0))?;
     sysinfo_class.define_method("kernel_version", method!(RbSysinfo::kernel_version, 0))?;
     sysinfo_class.define_method("os_version", method!(RbSysinfo::os_version, 0))?;
