@@ -44,3 +44,7 @@ puts("System host name:        #{sys.host_name}")
 
 # Number of CPUs:
 puts("\nNB CPUs: #{sys.cpus.size}")
+
+sys.cpus.each do |cpu|
+    p cpu.to_hash
+end

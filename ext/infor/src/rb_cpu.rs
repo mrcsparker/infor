@@ -1,4 +1,5 @@
 use magnus::{class, method, Module, RModule};
+use sysinfo::CpuExt;
 
 #[derive(Clone, Debug)]
 #[magnus::wrap(class = "Infor::Cpu", free_immediately, size)]
@@ -10,23 +11,19 @@ pub struct RbCpu {
     pub frequency: u64,
 }
 
-impl RbCpu {
-    pub fn new(
-        cpu_usage: f32,
-        name: String,
-        vendor_id: String,
-        brand: String,
-        frequency: u64,
-    ) -> Self {
+impl From<&sysinfo::Cpu> for RbCpu {
+    fn from(cpu: &sysinfo::Cpu) -> Self {
         Self {
-            cpu_usage,
-            name,
-            vendor_id,
-            brand,
-            frequency,
+            cpu_usage: cpu.cpu_usage(),
+            name: cpu.name().to_string(),
+            vendor_id: cpu.vendor_id().to_string(),
+            brand: cpu.brand().to_string(),
+            frequency: cpu.frequency(),
         }
     }
+}
 
+impl RbCpu {
     fn cpu_usage(&self) -> f32 {
         self.cpu_usage
     }

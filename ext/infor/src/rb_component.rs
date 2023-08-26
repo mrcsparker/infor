@@ -1,4 +1,5 @@
 use magnus::{class, method, Module, RModule};
+use sysinfo::{Component, ComponentExt};
 
 #[derive(Clone, Debug)]
 #[magnus::wrap(class = "Infor::Component", free_immediately, size)]
@@ -7,6 +8,17 @@ pub struct RbComponent {
     pub max: f32,
     pub critical: Option<f32>,
     pub label: String,
+}
+
+impl From<&sysinfo::Component> for RbComponent {
+    fn from(component: &sysinfo::Component) -> Self {
+        Self {
+            temperature: component.temperature(),
+            max: component.max(),
+            critical: component.critical(),
+            label: component.label().to_string(),
+        }
+    }
 }
 
 impl RbComponent {

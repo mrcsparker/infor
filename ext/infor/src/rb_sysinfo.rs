@@ -3,15 +3,14 @@ use magnus::{exception, Error, RArray};
 use rayon::prelude::*;
 use std::cell::RefCell;
 
-use sysinfo::{
-    ComponentExt, CpuExt, DiskExt, LoadAvg, NetworkExt, NetworksExt, System, SystemExt, UserExt,
-};
+use sysinfo::{NetworkExt, NetworksExt, Pid, PidExt, Process, ProcessExt, System, SystemExt};
 
 use crate::rb_component::RbComponent;
 use crate::rb_cpu::RbCpu;
 use crate::rb_disk::RbDisk;
 use crate::rb_load_avg::RbLoadAvg;
 use crate::rb_network::RbNetwork;
+use crate::rb_process::RbProcess;
 use crate::rb_user::RbUser;
 
 #[magnus::wrap(class = "Infor::Sysinfo", free_immediately, size)]
@@ -83,8 +82,30 @@ impl RbSysinfo {
         self.0.borrow_mut().refresh_networks_list()
     }
 
-    // Returns the process list.
+    /// Returns the process list.
     // fn processes(&self) -> &HashMap<Pid, Process>;
+    /*fn processes(&self) {
+        &self
+            .0
+            .borrow()
+            .processes()
+            .iter()
+            .for_each(|(pid, process)| {
+                let rb_process = RbProcess {
+                    pid: pid.as_u32(),
+                    name: process.name().to_string(),
+                    cmd: process.cmd().to_vec(),
+                    exe: process.exe().to_str().unwrap_or("").to_string(),
+                    environ: process.environ().to_vec(),
+                    cwd: process.cwd().to_str().unwrap_or("").to_string(),
+                    root: process.root().to_str().unwrap_or("").to_string(),
+                    memory: process.memory(),
+                    virtual_memory: process.virtual_memory(),
+                    parent: process.parent(),
+                };
+                println!("{:?}", rb_process);
+            });
+    }*/
 
     // Returns the process corresponding to the given `pid` or `None` if no such process exists.
     // fn process(&self, pid: Pid) -> Option<&Process>;
@@ -100,22 +121,14 @@ impl RbSysinfo {
 
     // Returns the list of the CPUs.
     fn cpus(&self) -> Result<RArray, Error> {
-        let array = RArray::new();
-
-        self.0.borrow().cpus().iter().for_each(|cpu| {
-            let rb_cpu = RbCpu::new(
-                cpu.cpu_usage(),
-                cpu.name().to_string(),
-                cpu.vendor_id().to_string(),
-                cpu.brand().to_string(),
-                cpu.frequency(),
-            );
-            match array.push(rb_cpu) {
-                Ok(_) => {}
-                Err(e) => Err(Error::new(exception::runtime_error(), format!("{e:?}"))).unwrap(),
-            }
-        });
-        Ok(array)
+        let rb_cpus = self
+            .0
+            .borrow()
+            .cpus()
+            .par_iter()
+            .map(Into::into)
+            .collect::<Vec<RbCpu>>();
+        Ok(RArray::from_iter(rb_cpus))
     }
 
     /// Returns the number of physical cores on the CPU or `None` if it couldn't get it.
@@ -160,21 +173,14 @@ impl RbSysinfo {
 
     /// Returns the components list.
     fn components(&self) -> Result<RArray, Error> {
-        let array = RArray::new();
-
-        self.0.borrow().components().iter().for_each(|component| {
-            let rb_component = RbComponent::new(
-                component.temperature(),
-                component.max(),
-                component.critical(),
-                component.label().to_string(),
-            );
-            match array.push(rb_component) {
-                Ok(_) => {}
-                Err(e) => Err(Error::new(exception::runtime_error(), format!("{e:?}"))).unwrap(),
-            }
-        });
-        Ok(array)
+        let rb_component = self
+            .0
+            .borrow()
+            .components()
+            .par_iter()
+            .map(Into::into)
+            .collect::<Vec<RbComponent>>();
+        Ok(RArray::from_iter(rb_component))
     }
 
     // Returns a mutable components list.
@@ -182,42 +188,27 @@ impl RbSysinfo {
 
     /// Returns the users list.
     fn users(&self) -> Result<RArray, Error> {
-        let array = RArray::new();
-
-        self.0.borrow().users().iter().for_each(|u| {
-            let user = RbUser::new(
-                u.id().to_string(),
-                u.group_id().to_string(),
-                u.name().to_string(),
-                u.groups().to_vec(),
-            );
-            match array.push(user) {
-                Ok(_) => {}
-                Err(e) => Err(Error::new(exception::runtime_error(), format!("{e:?}"))).unwrap(),
-            }
-        });
-        Ok(array)
+        let rb_users = self
+            .0
+            .borrow()
+            .users()
+            .par_iter()
+            .map(Into::into)
+            .collect::<Vec<RbUser>>();
+        Ok(RArray::from_iter(rb_users))
     }
 
     /// Returns the disks list.
     fn disks(&self) -> Result<RArray, Error> {
-        let array = RArray::new();
+        let rb_disks = self
+            .0
+            .borrow()
+            .disks()
+            .par_iter()
+            .map(Into::into)
+            .collect::<Vec<RbDisk>>();
 
-        self.0.borrow().disks().iter().for_each(|disk| {
-            let rb_disk = RbDisk::new(
-                disk.name().to_str().unwrap_or("").to_string(),
-                disk.mount_point().to_str().unwrap_or("").to_string(),
-                disk.total_space(),
-                disk.available_space(),
-                disk.is_removable(),
-            );
-            match array.push(rb_disk) {
-                Ok(_) => {}
-                Err(e) => Err(Error::new(exception::runtime_error(), format!("{e:?}"))).unwrap(),
-            }
-        });
-
-        Ok(array)
+        Ok(RArray::from_iter(rb_disks))
     }
 
     // Returns the disks list.

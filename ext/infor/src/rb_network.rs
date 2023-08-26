@@ -1,4 +1,5 @@
 use magnus::{class, method, Module, RModule};
+use sysinfo::NetworkExt;
 
 #[derive(Clone, Debug)]
 #[magnus::wrap(class = "Infor::Network", free_immediately, size)]

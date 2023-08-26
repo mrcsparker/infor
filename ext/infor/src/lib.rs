@@ -5,6 +5,7 @@ mod rb_cpu;
 mod rb_disk;
 mod rb_load_avg;
 mod rb_network;
+mod rb_process;
 mod rb_sysinfo;
 mod rb_user;
 

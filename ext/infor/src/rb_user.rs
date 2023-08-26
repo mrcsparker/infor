@@ -1,4 +1,5 @@
 use magnus::{class, method, Module, RModule};
+use sysinfo::UserExt;
 
 #[derive(Clone, Debug)]
 #[magnus::wrap(class = "Infor::User", free_immediately, size)]
@@ -9,16 +10,18 @@ pub struct RbUser {
     pub groups: Vec<String>,
 }
 
-impl RbUser {
-    pub fn new(id: String, group_id: String, name: String, groups: Vec<String>) -> Self {
+impl From<&sysinfo::User> for RbUser {
+    fn from(user: &sysinfo::User) -> Self {
         Self {
-            id,
-            group_id,
-            name,
-            groups,
+            id: user.id().to_string(),
+            group_id: user.group_id().to_string(),
+            name: user.name().to_string(),
+            groups: user.groups().to_vec(),
         }
     }
+}
 
+impl RbUser {
     fn id(&self) -> String {
         self.id.to_string()
     }

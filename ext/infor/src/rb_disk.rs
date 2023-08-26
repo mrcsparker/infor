@@ -1,4 +1,5 @@
 use magnus::{class, method, Module, RModule};
+use sysinfo::DiskExt;
 
 #[derive(Clone, Debug)]
 #[magnus::wrap(class = "Infor::Disk", free_immediately, size)]
@@ -10,23 +11,19 @@ pub struct RbDisk {
     pub is_removable: bool,
 }
 
-impl RbDisk {
-    pub fn new(
-        name: String,
-        mount_point: String,
-        total_space: u64,
-        available_space: u64,
-        is_removable: bool,
-    ) -> Self {
+impl From<&sysinfo::Disk> for RbDisk {
+    fn from(disk: &sysinfo::Disk) -> Self {
         Self {
-            name,
-            mount_point,
-            total_space,
-            available_space,
-            is_removable,
+            name: disk.name().to_str().unwrap_or("").to_string(),
+            mount_point: disk.mount_point().to_str().unwrap_or("").to_string(),
+            total_space: disk.total_space(),
+            available_space: disk.available_space(),
+            is_removable: disk.is_removable(),
         }
     }
+}
 
+impl RbDisk {
     fn name(&self) -> String {
         self.name.clone()
     }
